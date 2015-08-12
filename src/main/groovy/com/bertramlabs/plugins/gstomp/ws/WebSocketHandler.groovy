@@ -1,8 +1,7 @@
-package com.bertramlabs.plugins.gstomp
+package com.bertramlabs.plugins.gstomp.ws
 
-import java.net.URI;
- 
-import javax.websocket.ClientEndpoint;
+import groovy.util.logging.Commons
+
 import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
 import javax.websocket.OnClose;
@@ -10,14 +9,15 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
- 
-@ClientEndpoint(configurator = SockJsConfigurator.class)
+
+@Commons
 public class WebSocketHandler {
     Session userSession = null;
     private MessageHandler messageHandler;
- 
+
     public WebSocketHandler(URI endpointURI) {
         try {
+            log.info("Opening WS Connection ${endpointURI}")
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(this, endpointURI);
         } catch (Exception e) {

@@ -1,4 +1,4 @@
-package com.bertramlabs.plugins.gstomp
+package com.bertramlabs.plugins.gstomp.sockjs
 
 
 import javax.websocket.ClientEndpoint;
@@ -18,7 +18,7 @@ public class SockJsConfigurator extends ClientEndpointConfig.Configurator {
     @Override
     public void afterResponse(HandshakeResponse handshakeResponse) {
         final Map<String, List<String>> headers = handshakeResponse.getHeaders();
-        println "received Header ${headers.get("origin")}"
+       // println "received Header ${headers.get("origin")}"
         // assertEquals("*", headers.get("origin").get(0));
     }
 }

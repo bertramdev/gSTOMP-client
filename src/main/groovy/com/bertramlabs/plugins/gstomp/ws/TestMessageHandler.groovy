@@ -1,4 +1,4 @@
-package com.bertramlabs.plugins.gstomp
+package com.bertramlabs.plugins.gstomp.ws
 
 public class TestMessageHandler implements MessageHandler {
     public void handleMessage(String message) {

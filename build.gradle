@@ -1,22 +1,26 @@
-apply plugin: 'groovy'
-apply plugin: 'idea'
-apply plugin: 'maven-publish'
-apply plugin: 'bintray'
-
-group = 'com.bertramlabs.plugins'
-
-version = '0.0.1'
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-
 buildscript {
     repositories {
         mavenLocal()
         jcenter()
     }
     dependencies {
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.3"
-    }
+    }   
 }
+
+plugins {
+    id "com.jfrog.bintray" version "1.2"
+}
+
+apply plugin: 'groovy'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+
+group = 'com.bertramlabs.plugins'
+
+version = '0.0.1'
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+
 
 
 repositories {
