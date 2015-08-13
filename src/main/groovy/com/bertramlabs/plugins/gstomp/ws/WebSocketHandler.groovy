@@ -17,6 +17,7 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
     Session userSession = null;
     private boolean connected = false;
     private MessageHandler messageHandler;
+    private WebSocketOnCloseInterceptor closeInterceptor;
 
 
     public WebSocketHandler(URI endpointURI, ClientEndpointConfig clientEndpointConfig) {
@@ -78,8 +79,11 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
      */
     public void onClose(Session userSession, CloseReason reason) {
         this.userSession = null;
-        if(reason.closeCode != CloseReason.CloseCodes.NORMAL_CLOSURE) {
-         //FIXME: We need to notify the root object immediately and attempt reconnects
+//        if(reason.closeCode != CloseReason.CloseCodes.NORMAL_CLOSURE) {
+//         //FIXME: We need to notify the root object immediately and attempt reconnects
+//        }
+        if(this.closeInterceptor) {
+            this.closeInterceptor.onClose()
         }
         this.connected = false
     }
@@ -97,6 +101,10 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
 
     public void addMessageHandler(MessageHandler msgHandler) {
         this.messageHandler = msgHandler;
+    }
+
+    public void addCloseInterceptor(WebSocketOnCloseInterceptor closeInterceptor) {
+        this.closeInterceptor = closeInterceptor
     }
  
     public void sendMessage(String message) {

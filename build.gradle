@@ -19,7 +19,8 @@ group = 'com.bertramlabs.plugins'
 
 version = '0.0.1'
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-
+targetCompatibility = '1.7'
+sourceCompatibility = '1.7'
 
 
 
@@ -27,7 +28,6 @@ repositories {
     jcenter()
     mavenLocal()
     mavenCentral()
-    maven { url 'http://dl.bintray.com/bertramlabs/karman' }
 }
 
 
@@ -102,7 +102,7 @@ bintray {
     key = project.hasProperty('bintrayKey') ? bintrayKey : 'key here'
     publications = ['maven']
     pkg {
-        repo = 'karman'
+        repo = 'gstomp'
         userOrg = 'bertramlabs'
         name = 'gstomp-client'
         licenses = ['Apache-2.0']

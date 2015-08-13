@@ -1,5 +1,7 @@
 package com.bertramlabs.plugins.gstomp
 
+import groovy.json.JsonSlurper
+
 /**
  * Representation of a STOMP Frame
  * @author David Estes
@@ -30,6 +32,18 @@ class StompFrame {
         this.command = command
         this.headers = headers
         this.body = body
+    }
+
+
+    public def getJsonBody() {
+        if(this.body) {
+            try {
+                return new JsonSlurper().parseText(this.body)
+            } catch(ex) {
+                return null
+            }
+        }
+        return null
     }
 
     public String toString() {
