@@ -1,15 +1,16 @@
 package com.bertramlabs.plugins.gstomp
 
 import com.bertramlabs.plugins.gstomp.sockjs.SockJsStompChannel
-
-import java.nio.channels.AlreadyConnectedException
+import groovy.util.logging.Commons
 
 
 /**
 * The primary class for interfacing with a STOMP protocol connection
 * @author David Estes
 */
+@Commons
 public class StompClient {
+    public static Integer STOMP_CONNECTION_TIMEOUT = 30000
 	private Integer senderHeartbeat = 0;
 	private Integer heartbeat = 10000;
 	private Boolean autoReconnect = false;
@@ -23,8 +24,16 @@ public class StompClient {
     private Map pendingReceipts = [:]
 	private Integer subscriptionIdIncrementer=0
 
-    public static StompClient overSockJs(URL endpointURL, String sessionId = null) {
-        SockJsStompChannel stompChannel = new SockJsStompChannel(endpointURL, sessionId);
+    /**
+     * Creates a StompClient tied to a new StompChannelInterface for communicating over a SockJs Websocket
+     * @param endpointURL - The root endpointURL for the SockJs interface (/info and /$serverId/$sessionId/websocket)
+     * are automatically appended.
+     * @param sessionId - Override to use a specific sessionId . If left blank a random UUID will be used
+     * @return stompClient - The initialized stompClient. Now you can set other options and
+     * call the {@link connect() connect} method
+     */
+    public static StompClient overSockJs(URL endpointURL, String sessionId = null, Map headers = null) {
+        SockJsStompChannel stompChannel = new SockJsStompChannel(endpointURL, sessionId, headers);
 
         def stompClient = new StompClient(stompChannel);
         return stompClient;
@@ -42,28 +51,49 @@ public class StompClient {
      */
     public void connect() {
         if(this.connected) {
-            //TODO : Throw an exception
+            throw new IllegalStateException("The STOMP client is already connected")
             return
         }
         stompChannel.connect();
+        Integer counter = STOMP_CONNECTION_TIMEOUT
+        while(!this.connected) {
+            sleep(250)
+            counter -= 250
+            if(counter <= 0) {
+                stompChannel.disconnect()
+                throw new SocketTimeoutException()
+            }
+        }
     }
 
     /**
      * Used to disconnect the stomp client interface
      */
     public void disconnect() {
-        if(this.connected) {
-            //TODO : Throw an exception
+        if(!this.connected) {
+            throw new IllegalStateException("The STOMP client is not yet connected")
             return
         }
 
-        String receiptId = (Math.random()*100).toString()
-        new StompFrame('DISCONNECT', ['receipt-id': receiptId])
+        String receiptId = (Math.random()*100).toInteger().toString()
+        StompFrame disconnectFrame = new StompFrame('DISCONNECT', ['receipt-id': receiptId])
+        stompChannel.sendStompFrame(disconnectFrame)
+
+        Integer counter=5000
         while(pendingReceipts[receiptId] != true) {
             sleep(250)
+            counter -= 250
+            if(this.connected == false) {
+                return
+            }
+            if(counter <= 0) {
+                break
+            }
         }
-        pendingReceipts.remove{receiptId}
+        this.connected = false
+        pendingReceipts.remove(receiptId)
         stompChannel.disconnect()
+
     }
 
 	/**
@@ -188,14 +218,14 @@ public class StompClient {
 			connectHeaders['passcode'] = passcode
 		}
 
-        StompFrame stompFrame = new StompFrame('CONNECT', connectHeaders)
+        StompFrame stompFrame = new StompFrame('CONNECT', connectHeaders,'')
 
 		stompChannel.sendStompFrame(stompFrame)
 	}
 
 	private void sendMessage(StompFrame frame) {
 		if(!connected) {
-            //TODO : Throw an exception here
+            throw new IllegalStateException("The STOMP client is not yet connected")
             return
         }
 
@@ -211,7 +241,8 @@ public class StompClient {
                 this.connected = true;
                 break
             case 'RECEIPT':
-                //TODO : Handle Receipt by id
+                handleReceiptFrame(frame)
+                break;
             case 'ERROR':
                 log.error("Error Received From Server: \n ${frame.body}")
                 this.connected = false
@@ -222,6 +253,10 @@ public class StompClient {
                 break;
         }
 	}
+
+    private handleReceiptFrame(StompFrame frame) {
+        pendingReceipts[frame.headers['receipt-id']] = true
+    }
 
     private handleMessageFrame(StompFrame frame) {
         def subscriptionId = frame.headers['subscription']
@@ -271,7 +306,7 @@ public class StompClient {
 	 */
 	public void send(String destination, Map headers=null, String message=null) {
 		if(!connected) {
-			//TODO : Throw an exception here
+            throw new IllegalStateException("The STOMP client is not yet connected")
 			return
 		}
 		Map frameHeaders = [destination: destination]
@@ -299,7 +334,7 @@ public class StompClient {
 	 */
 	public void send(String destination, Map headers=null, Object message) {
 		if(!connected) {
-			//TODO : Throw an exception here
+            throw new IllegalStateException("The STOMP client is not yet connected")
 			return
 		}
 		if(message) {
@@ -341,7 +376,7 @@ public class StompClient {
 	 */
 	public void unsubscribe(String destination, Closure callback) {
 		if(!connected) {
-			//TODO : Throw an exception here
+            throw new IllegalStateException("The STOMP client is not yet connected")
 			return
 		}
 		Map matchedSubscriptions = frameHeaders.findAll{entry ->
@@ -363,13 +398,18 @@ public class StompClient {
 	 */
 	public void unsubscribe(Integer id) {
 		if(!connected) {
-			//TODO : Throw an exception here
+            throw new IllegalStateException("The STOMP client is not yet connected")
 			return
 		}
 		stompChannel.sendStompFrame(new StompFrame('UNSUBSCRIBE',[id: id]))
 		subscriptions.remove(id.toString())
 	}
 
+    /**
+     * Extracts a STOMP formatted String body into a StompFrame object
+     * @param message The input String to be parsed
+     * @return StompFrame
+     */
 	private StompFrame extractFrameFromMessage(String message) {
 		def lines = message.split("\n")
 		def bodyArgs

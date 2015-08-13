@@ -7,3 +7,8 @@ stompClient.connect()
 sleep(1000)
 stompClient.isConnected()
 
+stompClient.subscribe("/topic/statCommands") { stompFrame ->
+    println "received StompFrame ${stompFrame.body}"
+}
+
+stompClient.send("/app/requestStatJobs",[:],"123456")

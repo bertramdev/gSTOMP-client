@@ -20,9 +20,10 @@ public class SockJsStompChannel implements StompChannelInterface {
     Integer serverId
     SockJsWsHandler websocketHandler
     StompClient stompClient
+    Map requestHeaders = null
     Boolean connected = false
 
-    public SockJsStompChannel(URL endpointURL,String sessionId = null) {
+    public SockJsStompChannel(URL endpointURL,String sessionId = null, Map headers = null) {
         this.endpointURL = endpointURL;
         this.stompClient = stompClient
         if(sessionId) {
@@ -30,6 +31,7 @@ public class SockJsStompChannel implements StompChannelInterface {
         } else {
             this.sessionId = UUID.randomUUID()
         }
+        this.requestHeaders = headers
         this.serverId = (Math.random()*999).toInteger()
     }
 
@@ -54,10 +56,11 @@ public class SockJsStompChannel implements StompChannelInterface {
 
     private Boolean connectWs() {
         URI webSocketURI = getWebsocketURI()
-        this.websocketHandler = new SockJsWsHandler(webSocketURI)
+        this.websocketHandler = new SockJsWsHandler(webSocketURI, requestHeaders)
         websocketHandler.addMessageHandler(new StompMessageHandler(this))
         this.connected = true
-        this.stompClient.sendSTOMPConnectRequest()
+        this.sendMessage("[\"\"]")
+        //this.stompClient.sendSTOMPConnectRequest()
         return true;
     }
 
@@ -66,7 +69,10 @@ public class SockJsStompChannel implements StompChannelInterface {
     }
 
     public void disconnect() {
-//        TODO: Implement Disconnect
+        if(!this.connected) {
+            return
+        }
+        this.websocketHandler.disconnect()
         this.stompClient.setConnected(false)
     }
 
