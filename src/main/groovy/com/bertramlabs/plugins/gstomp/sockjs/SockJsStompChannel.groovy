@@ -87,7 +87,7 @@ public class SockJsStompChannel implements StompChannelInterface {
     }
 
     public void sendMessage(String message) {
-        log.info("Sending Message over SockJs: ${message}")
+        log.debug("Sending Message over SockJs: ${message}")
         this.websocketHandler.sendMessage(message)
     }
 

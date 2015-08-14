@@ -20,7 +20,7 @@ public class StompMessageHandler implements MessageHandler {
     }
 
     public void handleMessage(String message) {
-        log.info("Received Message over SockJs: ${message}")
+        log.debug("Received Message over SockJs: ${message}")
         if(message == 'o') {
             //We received an open connection init
             stompClient.sendSTOMPConnectRequest()

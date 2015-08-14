@@ -507,7 +507,6 @@ public class StompClient implements WebSocketOnCloseInterceptor {
 
         if (bodyArgs) {
             body = bodyArgs.join("\n").replaceAll("\u0000", "")
-            println "Extracted Body ${body}"
         }
 
         return new StompFrame(command, headers, body)
