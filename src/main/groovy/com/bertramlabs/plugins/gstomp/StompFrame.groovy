@@ -1,11 +1,13 @@
 package com.bertramlabs.plugins.gstomp
 
 import groovy.json.JsonSlurper
+import groovy.util.logging.Commons
 
 /**
  * Representation of a STOMP Frame
  * @author David Estes
  */
+@Commons
 class StompFrame {
     /**
      * The Command from the STOMP frame
@@ -40,6 +42,7 @@ class StompFrame {
             try {
                 return new JsonSlurper().parseText(this.body)
             } catch(ex) {
+                log.warn("Error Processing Response as JSON ${ex}",ex)
                 return null
             }
         }
