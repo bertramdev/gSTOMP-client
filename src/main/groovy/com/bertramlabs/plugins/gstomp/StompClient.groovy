@@ -388,7 +388,8 @@ public class StompClient implements WebSocketOnCloseInterceptor {
             return
         }
         if (message) {
-            Map frameHeaders = headers + ['content-type': 'application/javascript']
+
+            Map frameHeaders = (headers ?: [:]) + ['content-type': 'application/javascript']
             String jsonMessage = JsonOutput.toJson(message)
             send(destination, frameHeaders, jsonMessage)
         } else {
