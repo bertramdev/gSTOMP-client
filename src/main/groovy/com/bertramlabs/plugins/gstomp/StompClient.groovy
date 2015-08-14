@@ -2,6 +2,7 @@ package com.bertramlabs.plugins.gstomp
 
 import com.bertramlabs.plugins.gstomp.sockjs.SockJsStompChannel
 import com.bertramlabs.plugins.gstomp.ws.WebSocketOnCloseInterceptor
+import groovy.json.JsonOutput
 import groovy.util.logging.Commons
 
 
