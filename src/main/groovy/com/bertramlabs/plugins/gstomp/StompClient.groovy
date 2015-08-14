@@ -492,7 +492,9 @@ public class StompClient implements WebSocketOnCloseInterceptor {
                 } else {
                     bodyArgs << line
                 }
-            } else if (line != '') {
+            } else if (!blankLineFound && line == '') {
+                blankLineFound = true
+            } else {
                 def headerArgs = line.split(":")
                 if (headerArgs.size() == 2) {
                     if (!headers) {
@@ -500,13 +502,12 @@ public class StompClient implements WebSocketOnCloseInterceptor {
                     }
                     headers[headerArgs[0]] = headerArgs[1]
                 }
-            } else {
-                blankLineFound = true
             }
         }
 
         if (bodyArgs) {
             body = bodyArgs.join("\n").replaceAll("\u0000", "")
+            println "Extracted Body ${body}"
         }
 
         return new StompFrame(command, headers, body)

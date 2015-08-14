@@ -4,8 +4,8 @@ import com.bertramlabs.plugins.gstomp.StompChannelInterface
 import com.bertramlabs.plugins.gstomp.StompClient
 import com.bertramlabs.plugins.gstomp.StompFrame
 import groovy.json.JsonSlurper
+import groovy.json.StringEscapeUtils
 import groovy.util.logging.Commons
-
 
 /**
  * Interfaces with a Sock.Js URL endpoint and assesses the proper underlying protocol to use with STOMP
@@ -92,11 +92,13 @@ public class SockJsStompChannel implements StompChannelInterface {
     }
 
     public void sendStompFrame(StompFrame stompFrame) {
-        sendMessage("[\"${stompFrame.toString()?.replaceAll("\n", "\\\\n").replaceAll("\u0000","\\\\u0000").replaceAll("\"","\\\\\"")}\"]")
+        String escapedFrame = StringEscapeUtils.escapeJava(stompFrame.toString())
+        sendMessage("[\"${escapedFrame}\"]")
     }
 
     public void handleMessage(String message) {
-        stompClient.handleMessage(message.replaceAll("\\\\n","\n").replaceAll("\\\\u0000","\u0000").replaceAll("\\\\\"", "\""))
+        stompClient.handleMessage(StringEscapeUtils.unescapeJava(message).replaceAll("\u0000", ""))
+
     }
 
 
