@@ -480,27 +480,29 @@ public class StompClient implements WebSocketOnCloseInterceptor {
     private StompFrame extractFrameFromMessage(String message) {
         def lines = message.split("\n")
         def bodyArgs
-        String command = lines[0]
+        String command = lines ? lines[0] : ''
         String body
         Map headers
         Boolean blankLineFound = false
 
-        lines[1..-1].each { line ->
-            if (blankLineFound) {
-                if (!bodyArgs) {
-                    bodyArgs = [line]
-                } else {
-                    bodyArgs << line
-                }
-            } else if (!blankLineFound && line == '') {
-                blankLineFound = true
-            } else {
-                def headerArgs = line.split(":")
-                if (headerArgs.size() == 2) {
-                    if (!headers) {
-                        headers = [:]
+        if(lines && lines.size() > 1) {
+            lines[1..-1].each { line ->
+                if (blankLineFound) {
+                    if (!bodyArgs) {
+                        bodyArgs = [line]
+                    } else {
+                        bodyArgs << line
                     }
-                    headers[headerArgs[0]] = headerArgs[1]
+                } else if (!blankLineFound && line == '') {
+                    blankLineFound = true
+                } else {
+                    def headerArgs = line.split(":")
+                    if (headerArgs.size() == 2) {
+                        if (!headers) {
+                            headers = [:]
+                        }
+                        headers[headerArgs[0]] = headerArgs[1]
+                    }
                 }
             }
         }
