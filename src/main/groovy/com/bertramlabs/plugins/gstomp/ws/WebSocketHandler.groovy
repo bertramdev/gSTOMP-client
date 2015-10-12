@@ -64,7 +64,10 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
             ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().configurator(configurator).build();
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             ClientManager client = ClientManager.createClient(container)
-            client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+            if(endpointURI.getScheme() == 'wss') {
+                client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+            }
+
             client.connectToServer(this, clientEndpointConfig, endpointURI);
         } catch (Exception e) {
             throw new RuntimeException(e);
