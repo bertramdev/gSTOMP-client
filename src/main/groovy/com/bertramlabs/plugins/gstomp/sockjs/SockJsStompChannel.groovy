@@ -40,6 +40,7 @@ public class SockJsStompChannel implements StompChannelInterface {
 
         try {
             log.info("Getting SockJs Connection Info ${infoUrl}")
+
             String infoText = infoUrl.text
             this.sockJsInfo = new JsonSlurper().parseText(infoText) as Map;
 
