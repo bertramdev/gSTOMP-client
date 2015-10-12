@@ -109,12 +109,11 @@ public class SockJsStompChannel implements StompChannelInterface {
             wsProtocol = 'wss'
         }
         String wsStringURI = "${wsProtocol}://${endpointURL.host}"
-        if(endpointURL.port) {
+        if(endpointURL.port != -1) {
             wsStringURI += ":${endpointURL.port}"
         }
 
         wsStringURI += "${endpointURL.path}${serverId}/${sessionId}/websocket"
-
         return new URI(wsStringURI)
     }
 }
