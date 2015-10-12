@@ -2,7 +2,13 @@ package com.bertramlabs.plugins.gstomp.ws
 
 
 import groovy.util.logging.Commons
+import org.glassfish.tyrus.client.ClientManager
+import org.glassfish.tyrus.client.ClientProperties
+import org.glassfish.tyrus.client.SslContextConfigurator
+import org.glassfish.tyrus.client.SslEngineConfigurator
 
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 import javax.websocket.ClientEndpointConfig
 import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider
@@ -25,6 +31,7 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
             log.info("Opening WS Connection ${endpointURI}")
 
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+
             container.connectToServer(this, clientEndpointConfig, endpointURI);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -35,9 +42,30 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
         try {
             log.info("Opening WS Connection ${endpointURI}")
             WebSocketConfigurator configurator = new WebSocketConfigurator(headers)
+            TrustManager[] trustAllCerts = [
+                    new X509TrustManager() {
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                            return null;
+                        }
+
+                        public void checkClientTrusted(
+                                java.security.cert.X509Certificate[] certs, String authType) {
+                        }
+
+                        public void checkServerTrusted(
+                                java.security.cert.X509Certificate[] certs, String authType) {
+                        }
+                    }
+            ] as TrustManager[]
+
+            SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(new SslContextConfigurator());
+            sslEngineConfigurator.setHostVerificationEnabled(false)
+            sslEngineConfigurator.getSslContext().init(null, trustAllCerts, new java.security.SecureRandom())
             ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().configurator(configurator).build();
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            container.connectToServer(this, clientEndpointConfig, endpointURI);
+            ClientManager client = ClientManager.createClient(container)
+            client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+            client.connectToServer(this, clientEndpointConfig, endpointURI);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
