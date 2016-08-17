@@ -6,7 +6,8 @@ import com.bertramlabs.plugins.gstomp.StompFrame
 import groovy.json.JsonSlurper
 import groovy.json.StringEscapeUtils
 import groovy.util.logging.Commons
-
+import java.security.SecureRandom;
+import java.math.BigInteger;
 /**
  * Interfaces with a Sock.Js URL endpoint and assesses the proper underlying protocol to use with STOMP
  * Currently only the websocket SockJs interface is supported.
@@ -22,6 +23,8 @@ public class SockJsStompChannel implements StompChannelInterface {
     StompClient stompClient
     Map requestHeaders = null
     Boolean connected = false
+    private SecureRandom random = new SecureRandom();
+
 
     public SockJsStompChannel(URL endpointURL,String sessionId = null, Map headers = null) {
         this.endpointURL = endpointURL;
@@ -113,7 +116,15 @@ public class SockJsStompChannel implements StompChannelInterface {
             wsStringURI += ":${endpointURL.port}"
         }
 
-        wsStringURI += "${endpointURL.path}${serverId}/${sessionId}/websocket"
+        wsStringURI += "${endpointURL.path}${serverId}/${nextSessionId()}/websocket"
         return new URI(wsStringURI)
     }
+
+
+
+
+    protected String nextSessionId() {
+        return new BigInteger(96, random).toString(32);
+    }
+    
 }
