@@ -17,7 +17,7 @@ apply plugin: 'maven-publish'
 
 group = 'com.bertramlabs.plugins'
 
-version = '0.5.0'
+version = '0.6.0'
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 targetCompatibility = '1.7'
 sourceCompatibility = '1.7'
