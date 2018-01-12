@@ -60,9 +60,7 @@ public class SockJsStompChannel implements StompChannelInterface {
 
     private Boolean connectWs() {
         URI webSocketURI = getWebsocketURI()
-        this.websocketHandler = new SockJsWsHandler(webSocketURI, requestHeaders)
-        websocketHandler.addMessageHandler(new StompMessageHandler(this))
-        websocketHandler.addCloseInterceptor(stompClient)
+        this.websocketHandler = new SockJsWsHandler(webSocketURI, requestHeaders,new StompMessageHandler(this),stompClient)
         this.connected = true
         this.sendMessage("[\"\"]")
         //this.stompClient.sendSTOMPConnectRequest()

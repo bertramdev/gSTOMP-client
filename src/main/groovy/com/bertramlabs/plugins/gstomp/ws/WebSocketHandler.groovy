@@ -26,19 +26,20 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
     private WebSocketOnCloseInterceptor closeInterceptor;
 
 
-    public WebSocketHandler(URI endpointURI, ClientEndpointConfig clientEndpointConfig) {
+    public WebSocketHandler(URI endpointURI, ClientEndpointConfig clientEndpointConfig, MessageHandler msgHandler = null, WebSocketOnCloseInterceptor closeInterceptor=null) {
         try {
             log.info("Opening WS Connection ${endpointURI}")
 
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-
+            addMessageHandler(msgHandler)
+            addCloseInterceptor(closeInterceptor)
             container.connectToServer(this, clientEndpointConfig, endpointURI);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public WebSocketHandler(URI endpointURI, Map headers=null) {
+    public WebSocketHandler(URI endpointURI, Map headers=null, MessageHandler msgHandler = null, WebSocketOnCloseInterceptor closeInterceptor=null) {
         try {
             log.info("Opening WS Connection ${endpointURI}")
             WebSocketConfigurator configurator = new WebSocketConfigurator(headers)
@@ -67,7 +68,8 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
             if(endpointURI.getScheme() == 'wss') {
                 client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
             }
-
+            addMessageHandler(msgHandler)
+            addCloseInterceptor(closeInterceptor)
             client.connectToServer(this, clientEndpointConfig, endpointURI);
         } catch (Exception e) {
             throw new RuntimeException(e);
