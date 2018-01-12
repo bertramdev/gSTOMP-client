@@ -19,93 +19,24 @@ import javax.websocket.MessageHandler.Whole
 
 @Commons
 public class WebSocketHandler extends Endpoint implements javax.websocket.MessageHandler.Whole<String> {
-<<<<<<< HEAD
-    Session userSession = null;
-    private boolean connected = false;
-    private MessageHandler messageHandler;
-    private WebSocketOnCloseInterceptor closeInterceptor;
-
-
-    public WebSocketHandler(URI endpointURI, ClientEndpointConfig clientEndpointConfig, MessageHandler msgHandler = null, WebSocketOnCloseInterceptor closeInterceptor=null) {
-        try {
-            log.info("Opening WS Connection ${endpointURI}")
-
-            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            addMessageHandler(msgHandler)
-            addCloseInterceptor(closeInterceptor)
-            container.connectToServer(this, clientEndpointConfig, endpointURI);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public WebSocketHandler(URI endpointURI, Map headers=null, MessageHandler msgHandler = null, WebSocketOnCloseInterceptor closeInterceptor=null) {
-        try {
-            log.info("Opening WS Connection ${endpointURI}")
-            WebSocketConfigurator configurator = new WebSocketConfigurator(headers)
-            TrustManager[] trustAllCerts = [
-                    new X509TrustManager() {
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                            return null;
-                        }
-
-                        public void checkClientTrusted(
-                                java.security.cert.X509Certificate[] certs, String authType) {
-                        }
-
-                        public void checkServerTrusted(
-                                java.security.cert.X509Certificate[] certs, String authType) {
-                        }
-                    }
-            ] as TrustManager[]
-
-            SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(new SslContextConfigurator());
-            sslEngineConfigurator.setHostVerificationEnabled(false)
-            sslEngineConfigurator.getSslContext().init(null, trustAllCerts, new java.security.SecureRandom())
-            ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().configurator(configurator).build();
-            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            ClientManager client = ClientManager.createClient(container)
-            if(endpointURI.getScheme() == 'wss') {
-                client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
-            }
-            addMessageHandler(msgHandler)
-            addCloseInterceptor(closeInterceptor)
-            client.connectToServer(this, clientEndpointConfig, endpointURI);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    public void disconnect() {
-        if(!this.connected) {
-            return
-        }
-        this.userSession?.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE,"User Disconnect Requested"))
-        this.connected = false
-    }
-
-    public Boolean isConnected() {
-        return this.connected
-    }
-=======
-
 	Session userSession = null
 	private boolean connected = false
 	private MessageHandler messageHandler
 	private WebSocketOnCloseInterceptor closeInterceptor
 
-	public WebSocketHandler(URI endpointURI, ClientEndpointConfig clientEndpointConfig) {
+	public WebSocketHandler(URI endpointURI, ClientEndpointConfig clientEndpointConfig, MessageHandler msgHandler = null, WebSocketOnCloseInterceptor closeInterceptor=null) {
 		try {
 			log.info("Opening WS Connection ${endpointURI}")
 			WebSocketContainer container = ContainerProvider.getWebSocketContainer()
+            addMessageHandler(msgHandler)
+            addCloseInterceptor(closeInterceptor)
 			container.connectToServer(this, clientEndpointConfig, endpointURI)
 		} catch(Exception e) {
 			throw new RuntimeException(e)
 		}
 	}
 
-	public WebSocketHandler(URI endpointURI, Map headers = null) {
+	public WebSocketHandler(URI endpointURI, Map headers = null, MessageHandler msgHandler = null, WebSocketOnCloseInterceptor closeInterceptor=null) {
 		try {
 			log.info("Opening WS Connection ${endpointURI}")
 			WebSocketConfigurator configurator = new WebSocketConfigurator(headers)
@@ -131,6 +62,8 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
 				sslEngineConfigurator.getSslContext().init(null, trustAllCerts, new java.security.SecureRandom())
 				client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator)
 			}
+            addMessageHandler(msgHandler)
+            addCloseInterceptor(closeInterceptor)
 			client.connectToServer(this, clientEndpointConfig, endpointURI)
 		} catch(Exception e) {
 			throw new RuntimeException(e)
@@ -148,8 +81,6 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
 	public Boolean isConnected() {
 		return this.connected
 	}
->>>>>>> 4aca55bff3c86d0dafb305640a8bdc26a2d39d63
- 
 	/**
 	 * Callback hook for Connection open events.
 	 * 
