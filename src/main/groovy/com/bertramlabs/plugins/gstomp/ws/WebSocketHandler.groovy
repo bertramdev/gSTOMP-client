@@ -23,6 +23,9 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
 	private boolean connected = false
 	private MessageHandler messageHandler
 	private WebSocketOnCloseInterceptor closeInterceptor
+	private URI endpointURI
+	private Map headers
+
 
 	public WebSocketHandler(URI endpointURI, ClientEndpointConfig clientEndpointConfig, MessageHandler msgHandler = null, WebSocketOnCloseInterceptor closeInterceptor=null) {
 		try {
@@ -39,6 +42,19 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
 	public WebSocketHandler(URI endpointURI, Map headers = null, MessageHandler msgHandler = null, WebSocketOnCloseInterceptor closeInterceptor=null) {
 		try {
 			log.info("Opening WS Connection ${endpointURI}")
+			this.headers = headers
+			this.endpointURI = endpointURI
+			
+            addMessageHandler(msgHandler)
+            addCloseInterceptor(closeInterceptor)
+			
+		} catch(Exception e) {
+			throw new RuntimeException(e)
+		}
+	}
+
+	public void connect() {
+		try {
 			WebSocketConfigurator configurator = new WebSocketConfigurator(headers)
 			ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().configurator(configurator).build()
 			WebSocketContainer container = ContainerProvider.getWebSocketContainer()
@@ -62,8 +78,6 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
 				sslEngineConfigurator.getSslContext().init(null, trustAllCerts, new java.security.SecureRandom())
 				client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator)
 			}
-            addMessageHandler(msgHandler)
-            addCloseInterceptor(closeInterceptor)
 			client.connectToServer(this, clientEndpointConfig, endpointURI)
 		} catch(Exception e) {
 			throw new RuntimeException(e)
@@ -132,7 +146,16 @@ public class WebSocketHandler extends Endpoint implements javax.websocket.Messag
 	}
  
 	public void sendMessage(String message) {
+		def attempts = 0
+		while(!this.userSession) {
+			sleep(500)
+			attempts++
+			if(attempts > 10) {
+				break
+			}
+		}
 		this.userSession.getAsyncRemote().sendText(message)
+		
 	}
 
 }
